@@ -9,6 +9,7 @@ class Computed {
         get = descriptorFn.bind(vm),
         dep = this._collectDep(descriptorFn);
         this.computedData.push({
+            dirty: false,
             key,
             value,
             get,
@@ -17,6 +18,10 @@ class Computed {
         const dataItem = this.computedData.find(item => item.key === key);
         Object.defineProperty(vm, key, {
             get() {
+                if (dataItem.dirty) {
+                    dataItem.dirty = false;
+                    dataItem.value = dataItem.get();
+                }
                 return dataItem.value;
             },
             set() {
@@ -33,7 +38,7 @@ class Computed {
             const dep = item.dep;
             for (let i of dep) {
                 if (i === key && oldVal !== newVal) {
-                    item.value = item.get();
+                    item.dirty = true;
                 }
             }
         })   
